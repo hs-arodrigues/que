@@ -169,7 +169,18 @@ module Que
             job.fetch(:id),
           ]
         end
-      rescue
+      rescue Exception => error
+        Que.log(
+          level: :debug,
+          event: :job_errored,
+          job_id: metajob.id,
+          error: {
+            class:   error.class.to_s,
+            message: error.message,
+            backtrace: (error.backtrace || []).join("\n").slice(0, 10000),
+          },
+        )
+
         # If we can't reach the database for some reason, too bad, but
         # don't let it crash the work loop.
       end
